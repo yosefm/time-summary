@@ -8,6 +8,11 @@ import Lib
 main :: IO ()
 main = do
     fileContent <- readFile "/mnt/c/Users/ymeller/presence.txt"
-    mapM_ print $ filter (\wd -> getMonth wd == 7) $ mapMaybe parseWorkDay $ lines fileContent
-  where getMonth wd = case (toGregorian . localDay . theDate) wd of
+    
+    let getMonth wd = case (toGregorian . localDay . theDate) wd of
             (_, m, _) -> m
+        monthWorkedDays = filter (\wd -> getMonth wd == 7) $ mapMaybe parseWorkDay $ lines fileContent
+        
+    mapM_ print $ monthWorkedDays
+    putStrLn $ "Worked hours: " ++ show (workedHours monthWorkedDays)
+    putStrLn $ "Required hours: " ++ show (requiredHours monthWorkedDays)

@@ -1,4 +1,7 @@
-module Lib ( WorkDay(..), DayContent, parseWorkDay ) where
+module Lib ( 
+    WorkDay(..), DayContent, parseWorkDay, 
+    workedHours, requiredHours 
+  ) where
 
 import Data.Char (isSpace, toLower)
 import Data.List (dropWhileEnd)
@@ -14,6 +17,10 @@ data WorkDay = WorkDay {
     content :: DayContent
   }
   deriving Show
+
+isWorked :: DayContent -> Bool
+isWorked (Worked _ _) = True
+isWorked _ = False
 
 trim :: String -> String
 trim = dropWhileEnd isSpace . dropWhile isSpace
@@ -42,3 +49,11 @@ parseWorkDay s =
         retDay d = WorkDay d $ parseDayContent rest
     in 
         retDay <$> parsedDate
+
+workedHours :: [WorkDay] -> Float
+workedHours = (/3600) . foldr (addWorked . content) 0 
+  where addWorked (Worked entry exit) dt = dt + (realToFrac $ diffLocalTime exit entry)
+        addWorked _ dt = dt
+
+requiredHours :: [WorkDay] -> Float
+requiredHours = (/5) . fromIntegral . (*42) . length . filter (isWorked . content)
