@@ -11,7 +11,7 @@ main = do
     
     let getMonth wd = case (toGregorian . localDay . theDate) wd of
             (_, m, _) -> m
-        monthWorkedDays = filter (\wd -> getMonth wd == 7) $ mapMaybe parseWorkDay $ lines fileContent
+        monthWorkedDays = filter (( == 7) . getMonth) $ mapMaybe parseWorkDay $ lines fileContent
         
     mapM_ print $ monthWorkedDays
     putStrLn $ "Worked hours: " ++ show (workedHours monthWorkedDays)
