@@ -5,6 +5,7 @@ module Lib (
 
 import Data.Char (isSpace, toLower)
 import Data.List (dropWhileEnd)
+import Data.Maybe (fromMaybe)
 import Data.Time
 
 type Clock = LocalTime
@@ -38,7 +39,7 @@ parseDayContent :: String -> DayContent
 parseDayContent s
     | lower s == "vacation"  = Vacation
     | lower s == "sick day"  = SickLeave
-    | otherwise = maybe Unknown id (parseWorkRange s)
+    | otherwise = fromMaybe Unknown (parseWorkRange s)
     
   where lower = map toLower
   
@@ -46,7 +47,7 @@ parseWorkDay :: String -> Maybe WorkDay
 parseWorkDay s =
     let (dateStr, rest) = break isSpace s
         parsedDate = parseTimeM True defaultTimeLocale "%e.%-m" dateStr
-        retDay d = WorkDay d $ parseDayContent rest
+        retDay d = WorkDay d $ parseDayContent $ trim rest
     in 
         retDay <$> parsedDate
 
