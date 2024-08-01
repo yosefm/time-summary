@@ -39,8 +39,18 @@ library:
 
 executables:
   time-summary-exe:
-    main:                Main.hs
-    source-dirs:         app
+    main:                CheckQuota.hs
+    source-dirs:         summary
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - time-summary
+    
+  excel-update-exe:
+    main:                ExcelUpdate.hs
+    source-dirs:         update
     ghc-options:
     - -threaded
     - -rtsopts
