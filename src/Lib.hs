@@ -1,5 +1,5 @@
 module Lib ( 
-    WorkDay(..), DayContent, parseWorkDay, 
+    WorkDay(..), DayContent(..), parseWorkDay, 
     workedHours, requiredHours 
   ) where
 
