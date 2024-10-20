@@ -3,28 +3,39 @@ module Main (main) where
 import Data.Maybe
 import Data.Time
 
-import System.Environment
-import System.Exit
+import Options.Applicative
 import Text.Read (readMaybe)
 
 import Lib
 
-parseMonthArg :: [String] -> IO Int
-parseMonthArg [] = exitFailure
-parseMonthArg [month] = 
-    case readMaybe month of 
-        Nothing -> exitFailure
-        Just m -> return m
-parseMonthArg _ = exitFailure
+data ProgramArgs = ProgramArgs {
+    dataFile :: String
+  , monthArg :: Int
+  }
+
+parseArgs :: Parser ProgramArgs
+parseArgs = ProgramArgs 
+  <$> strOption (
+        value "/mnt/c/Users/ymeller/presence.txt"
+    <>  long "datafile"
+    <>  short 'd'
+    <>  help "Path to file containing hours-worked table"
+    )
+  <*> argument auto (metavar "MONTH" <> help "The month to summarize")
+
+progInfo :: ParserInfo ProgramArgs
+progInfo = info (parseArgs <**> helper) (
+    progDesc "Summarize worked time for a month from a text table"
+  )
 
 main :: IO ()
 main = do
-    fileContent <- readFile "/mnt/c/Users/ymeller/presence.txt"
-    selectMonth <- getArgs >>= parseMonthArg
+    args <- execParser progInfo
+    fileContent <- readFile $ dataFile args
     
     let getMonth wd = case (toGregorian . localDay . theDate) wd of
             (_, m, _) -> m
-        monthWorkedDays = filter (( == selectMonth) . getMonth) $ mapMaybe parseWorkDay $ lines fileContent
+        monthWorkedDays = filter (( == monthArg args) . getMonth) $ mapMaybe parseWorkDay $ lines fileContent
         
     mapM_ print $ monthWorkedDays
     putStrLn $ "Worked hours: " ++ show (workedHours monthWorkedDays)
