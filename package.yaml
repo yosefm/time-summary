@@ -59,6 +59,9 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - time-summary
+    - bytestring
+    - lens
+    - text
 
 tests:
   time-summary-test:
