@@ -6,11 +6,13 @@ module Lib (
 import Data.Char (isSpace, toLower)
 import Data.List (dropWhileEnd)
 import Data.Maybe (fromMaybe)
+import Data.Bool (bool)
 import Data.Time
 
 type Clock = LocalTime
 data DayContent = Vacation | SickLeave | Unknown
      | Worked Clock Clock
+     | HalfWorked Clock Clock
   deriving Show
 
 data WorkDay = WorkDay {
@@ -19,21 +21,24 @@ data WorkDay = WorkDay {
   }
   deriving Show
 
-isWorked :: DayContent -> Bool
-isWorked (Worked _ _) = True
-isWorked _ = False
+requiredWork :: DayContent -> Float
+requiredWork (Worked _ _) = 1
+requiredWork (HalfWorked _ _) = 0.5
+requiredWork _ = 0
 
 trim :: String -> String
 trim = dropWhileEnd isSpace . dropWhile isSpace
 
 parseWorkRange :: String -> Maybe DayContent
 parseWorkRange s = 
-    let (entryTimeStr, exitTimeStr) = break isSpace (dropWhile isSpace s)
+    let (entryTimeStr, rest) = break isSpace (dropWhile isSpace s)
         parseIt = parseTimeM True defaultTimeLocale "%k:%M"
         entryTime = parseIt entryTimeStr
+        (exitTimeStr, note) = break isSpace (dropWhile isSpace rest)
         exitTime = parseIt $ takeWhile (not . isSpace) $ trim exitTimeStr
+        construct = bool Worked HalfWorked $ take 4 (trim note) == "half"
     in 
-        liftA2 Worked entryTime exitTime
+        liftA2 construct entryTime exitTime
 
 parseDayContent :: String -> DayContent
 parseDayContent s
@@ -53,8 +58,10 @@ parseWorkDay s =
 
 workedHours :: [WorkDay] -> Float
 workedHours = (/3600) . foldr (addWorked . content) 0 
-  where addWorked (Worked entry exit) dt = dt + (realToFrac $ diffLocalTime exit entry)
+  where addWorked (Worked entry exit) dt = dt + rangeVal entry exit
+        addWorked (HalfWorked entry exit) dt = dt + rangeVal entry exit
         addWorked _ dt = dt
+        rangeVal entry exit = (realToFrac $ diffLocalTime exit entry)
 
 requiredHours :: [WorkDay] -> Float
-requiredHours = (/5) . fromIntegral . (*42) . length . filter (isWorked . content)
+requiredHours = (* (42/5)) . sum . map (requiredWork . content) 
