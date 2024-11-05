@@ -28,6 +28,12 @@ progInfo = info (parseArgs <**> helper) (
     progDesc "Summarize worked time for a month from a text table"
   )
 
+formatFloatHours :: Float -> String
+formatFloatHours t = 
+    let h = truncate t
+        m = round $ (t - fromIntegral h) * 60
+    in show h ++ (':' : show m)
+    
 main :: IO ()
 main = do
     args <- execParser progInfo
@@ -38,5 +44,5 @@ main = do
         monthWorkedDays = filter (( == monthArg args) . getMonth) $ mapMaybe parseWorkDay $ lines fileContent
         
     mapM_ print $ monthWorkedDays
-    putStrLn $ "Worked hours: " ++ show (workedHours monthWorkedDays)
-    putStrLn $ "Required hours: " ++ show (requiredHours monthWorkedDays)
+    putStrLn $ "Worked hours: " ++ formatFloatHours (workedHours monthWorkedDays)
+    putStrLn $ "Required hours: " ++ formatFloatHours (requiredHours monthWorkedDays)
