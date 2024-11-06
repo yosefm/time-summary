@@ -13,15 +13,26 @@ import Codec.Xlsx
 import Control.Lens
 import Lib
 
+-- File data format:
+dateCol :: ColumnIndex
+dateCol = 1
+
+dateHeaderRow :: RowIndex
+dateHeaderRow = 3
+
+datePos, namePos :: (RowIndex, ColumnIndex)
+datePos = (dateHeaderRow, dateCol)
+namePos = (2, 3)
+
 validateFormat :: Worksheet -> Bool
 validateFormat sheet = 
-    let dateHeaderCell = sheet ^? ixCell (3, 1) . cellValue . _Just
+    let dateHeaderCell = sheet ^? ixCell datePos . cellValue . _Just
         toText (CellText txt) = txt
         toText _ = ""
     in maybe False ((== "Date ") . toText) dateHeaderCell
     
 putName :: Worksheet -> T.Text -> Worksheet
-putName sheet name = sheet & cellValueAt (2, 3) ?~ CellText name
+putName sheet name = sheet & cellValueAt namePos ?~ CellText name
 
 main :: IO ()
 main = do
@@ -42,5 +53,3 @@ main = do
             case validateFormat s of 
                 False -> putStrLn "Invalid template file: required date header not found"
                 True -> L.writeFile "output.xlsx" (fromXlsx ct $ updatedXlsx $ putName s "Yosef Meller")
-        
-    

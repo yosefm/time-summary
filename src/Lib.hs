@@ -21,6 +21,7 @@ data WorkDay = WorkDay {
   }
   deriving Show
 
+-- how many days' work is expected from one day?
 requiredWork :: DayContent -> Float
 requiredWork (Worked _ _) = 1
 requiredWork (HalfWorked _ _) = 0.5
