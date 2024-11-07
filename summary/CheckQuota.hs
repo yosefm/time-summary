@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Main (main) where
 
 import Data.Maybe
@@ -5,6 +7,7 @@ import Data.Time
 
 import Options.Applicative
 import Text.Read (readMaybe)
+import Text.Printf (printf)
 
 import Lib
 
@@ -30,9 +33,9 @@ progInfo = info (parseArgs <**> helper) (
 
 formatFloatHours :: Float -> String
 formatFloatHours t = 
-    let h = truncate t
-        m = round $ (t - fromIntegral h) * 60
-    in show h ++ (':' : show m)
+    let h :: Int = truncate t
+        m :: Int = round $ (t - fromIntegral h) * 60
+    in printf "%02d:%02d" h m 
     
 main :: IO ()
 main = do
