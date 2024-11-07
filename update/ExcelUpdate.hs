@@ -34,6 +34,11 @@ validateFormat sheet =
 putName :: Worksheet -> T.Text -> Worksheet
 putName sheet name = sheet & cellValueAt namePos ?~ CellText name
 
+putWorkDay :: Worksheet -> WorkDay -> Worksheet
+putWorkDay sheet day = sheet & cellValueAt dayPos ?~ CellText "found it"
+    where (_, _, d) = (toGregorian . localDay . theDate) day
+          dayPos = (fromIntegral d + fst datePos, dateCol)
+
 main :: IO ()
 main = do
     fileContent <- readFile "/mnt/c/Users/ymeller/presence.txt"
@@ -52,4 +57,8 @@ main = do
         Just s -> 
             case validateFormat s of 
                 False -> putStrLn "Invalid template file: required date header not found"
-                True -> L.writeFile "output.xlsx" (fromXlsx ct $ updatedXlsx $ putName s "Yosef Meller")
+                True -> L.writeFile "output.xlsx" (
+                    fromXlsx ct $ updatedXlsx 
+                    $ flip putWorkDay (head monthWorkedDays)
+                    $ putName s "Yosef Meller"
+                  )
