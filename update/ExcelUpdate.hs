@@ -34,11 +34,31 @@ validateFormat sheet =
 putName :: Worksheet -> T.Text -> Worksheet
 putName sheet name = sheet & cellValueAt namePos ?~ CellText name
 
-putWorkDay :: Worksheet -> WorkDay -> Worksheet
-putWorkDay sheet day = sheet & cellValueAt dayPos ?~ CellText "found it"
+putWorkDay :: WorkDay -> Worksheet -> Worksheet
+putWorkDay day sheet = 
+    case content day of 
+        (Worked entry exit) -> clockedUpdate entry exit
+        (HalfWorked entry exit) -> clockedUpdate entry exit
+        _ -> emptyUpdate
+    
     where (_, _, d) = (toGregorian . localDay . theDate) day
-          dayPos = (fromIntegral d + fst datePos, dateCol)
+          entryPos = (fromIntegral d + fst datePos, dateCol + 1)
+          exitPos = (fromIntegral d + fst datePos, dateCol + 2)
+          ft = T.pack . formatTime defaultTimeLocale "%H:%M" 
+          
+          clockedUpdate entry' exit' = 
+            sheet & cellValueAt entryPos ?~ CellText (ft entry')
+                  & cellValueAt exitPos ?~ CellText (ft exit')
+          
+          emptyUpdate = 
+            sheet & cellValueAt entryPos .~ Nothing
+                  & cellValueAt exitPos .~ Nothing
 
+updateSheet :: Worksheet -> [WorkDay] -> T.Text -> Worksheet
+updateSheet sheet workedDays employeeName = 
+    let updateDays s = foldr putWorkDay s workedDays
+    in updateDays $ putName sheet employeeName
+    
 main :: IO ()
 main = do
     fileContent <- readFile "/mnt/c/Users/ymeller/presence.txt"
@@ -59,6 +79,5 @@ main = do
                 False -> putStrLn "Invalid template file: required date header not found"
                 True -> L.writeFile "output.xlsx" (
                     fromXlsx ct $ updatedXlsx 
-                    $ flip putWorkDay (head monthWorkedDays)
-                    $ putName s "Yosef Meller"
+                    $ updateSheet s monthWorkedDays "Yosef Meller"
                   )
