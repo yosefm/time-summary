@@ -1,5 +1,3 @@
-{-# LANGUAGE ScopedTypeVariables #-}
-
 module Main (main) where
 
 import Data.Maybe
@@ -7,7 +5,6 @@ import Data.Time
 
 import Options.Applicative
 import Text.Read (readMaybe)
-import Text.Printf (printf)
 
 import Lib
 
@@ -30,12 +27,6 @@ progInfo :: ParserInfo ProgramArgs
 progInfo = info (parseArgs <**> helper) (
     progDesc "Summarize worked time for a month from a text table"
   )
-
-formatFloatHours :: Float -> String
-formatFloatHours t = 
-    let h :: Int = truncate t
-        m :: Int = round $ (t - fromIntegral h) * 60
-    in printf "%02d:%02d" h m 
     
 main :: IO ()
 main = do

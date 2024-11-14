@@ -73,3 +73,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - time-summary
+    - hspec
+

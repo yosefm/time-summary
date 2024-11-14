@@ -1,6 +1,8 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Lib ( 
     WorkDay(..), DayContent(..), parseWorkDay, 
-    workedHours, requiredHours 
+    workedHours, requiredHours, formatFloatHours
   ) where
 
 import Data.Char (isSpace, toLower)
@@ -8,6 +10,7 @@ import Data.List (dropWhileEnd)
 import Data.Maybe (fromMaybe)
 import Data.Bool (bool)
 import Data.Time
+import Text.Printf (printf)
 
 type Clock = LocalTime
 data DayContent = Vacation | SickLeave | Unknown
@@ -66,3 +69,9 @@ workedHours = (/3600) . foldr (addWorked . content) 0
 
 requiredHours :: [WorkDay] -> Float
 requiredHours = (* (42/5)) . sum . map (requiredWork . content) 
+
+formatFloatHours :: Float -> String
+formatFloatHours t = 
+    let h :: Int = truncate t
+        m :: Int = floor $ (t - fromIntegral h) * 60
+    in printf "%02d:%02d" h m 
