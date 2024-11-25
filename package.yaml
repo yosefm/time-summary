@@ -62,6 +62,7 @@ executables:
     - bytestring
     - lens
     - text
+    - filepath
 
 tests:
   time-summary-test:

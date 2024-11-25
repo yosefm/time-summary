@@ -3,6 +3,8 @@
 
 module Main (main) where
 
+import System.FilePath
+
 import Data.Maybe
 import Data.Time
 import qualified Data.Text as T
@@ -95,16 +97,20 @@ main = do
     let getMonth wd = case (toGregorian . localDay . theDate) wd of
             (_, m, _) -> m
         monthWorkedDays = filter (( == monthArg args) . getMonth) $ mapMaybe parseWorkDay $ lines fileContent
+        
         srcXlsx = toXlsx srcXlsFile 
         sheet = srcXlsx ^? ixSheet "Sheet1"
         updatedXlsx newSheet = srcXlsx & atSheet "Sheet1" ?~ newSheet
+        
+        (fname, fext) = splitExtension (excelSrcPath args)
+        outputPath = takeBaseName fname  ++ " Yosef Meller" `addExtension` fext 
     
     case sheet of 
         Nothing -> putStrLn "Invalid template file: missing worksheet"
         Just s -> 
             case validateFormat s of 
                 False -> putStrLn "Invalid template file: required date header not found"
-                True -> L.writeFile "output.xlsx" (
+                True -> L.writeFile outputPath (
                     fromXlsx ct $ updatedXlsx 
                     $ updateSheet s monthWorkedDays "Yosef Meller"
                   )
