@@ -16,7 +16,10 @@ import Control.Lens
 import Lib
 
 import qualified Options.Applicative as OA
-import Options.Applicative (execParser, strArgument, metavar, help, value, helper, info, progDesc, (<**>))
+import Options.Applicative (execParser, 
+    strArgument, metavar, help, value, 
+    strOption, short, long,
+    helper, info, progDesc, (<**>))
 import Args (baseArgs)
 
 -- File data format:
@@ -71,6 +74,7 @@ data ProgramArgs = ProgramArgs {
     dataFile :: String
   , monthArg :: Int
   , excelSrcPath :: String
+  , employeeName :: String
   }
 
 
@@ -80,6 +84,12 @@ parseArgs = baseArgs ProgramArgs
            metavar "SRC" 
         <> help "Liron's incoming file"
         <> value "/mnt/c/Users/ymeller/Documents/Administrata/Monthly attendance report October 2024.xlsx"
+        )
+    <*> strOption (
+        value "Yosef Meller"
+    <>  long "employee-name"
+    <>  short 'e'
+    <>  help "Name to use in output path and inside file."
         )
 
 progInfo :: OA.ParserInfo ProgramArgs
@@ -103,7 +113,7 @@ main = do
         updatedXlsx newSheet = srcXlsx & atSheet "Sheet1" ?~ newSheet
         
         (fname, fext) = splitExtension (excelSrcPath args)
-        outputPath = takeBaseName fname  ++ " Yosef Meller" `addExtension` fext 
+        outputPath = concat [takeBaseName fname, " ", employeeName args] `addExtension` fext 
     
     case sheet of 
         Nothing -> putStrLn "Invalid template file: missing worksheet"
@@ -112,5 +122,5 @@ main = do
                 False -> putStrLn "Invalid template file: required date header not found"
                 True -> L.writeFile outputPath (
                     fromXlsx ct $ updatedXlsx 
-                    $ updateSheet s monthWorkedDays "Yosef Meller"
+                    $ updateSheet s monthWorkedDays $ T.pack $ employeeName args
                   )
