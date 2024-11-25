@@ -7,6 +7,7 @@ import Options.Applicative
 import Text.Read (readMaybe)
 
 import Lib
+import Args (baseArgs)
 
 data ProgramArgs = ProgramArgs {
     dataFile :: String
@@ -14,14 +15,7 @@ data ProgramArgs = ProgramArgs {
   }
 
 parseArgs :: Parser ProgramArgs
-parseArgs = ProgramArgs 
-  <$> strOption (
-        value "/mnt/c/Users/ymeller/presence.txt"
-    <>  long "datafile"
-    <>  short 'd'
-    <>  help "Path to file containing hours-worked table"
-    )
-  <*> argument auto (metavar "MONTH" <> help "The month to summarize")
+parseArgs = baseArgs ProgramArgs 
 
 progInfo :: ParserInfo ProgramArgs
 progInfo = info (parseArgs <**> helper) (

@@ -13,6 +13,10 @@ import Codec.Xlsx
 import Control.Lens
 import Lib
 
+import qualified Options.Applicative as OA
+import Options.Applicative (execParser, strArgument, metavar, help, value, helper, info, progDesc, (<**>))
+import Args (baseArgs)
+
 -- File data format:
 dateCol :: ColumnIndex
 dateCol = 1
@@ -30,7 +34,8 @@ validateFormat sheet =
         toText (CellText txt) = txt
         toText _ = ""
     in maybe False ((== "Date ") . toText) dateHeaderCell
-    
+
+-- Substitutions:
 putName :: Worksheet -> T.Text -> Worksheet
 putName sheet name = sheet & cellValueAt namePos ?~ CellText name
 
@@ -58,16 +63,38 @@ updateSheet :: Worksheet -> [WorkDay] -> T.Text -> Worksheet
 updateSheet sheet workedDays employeeName = 
     let updateDays s = foldr putWorkDay s workedDays
     in updateDays $ putName sheet employeeName
-    
+
+-- CL arguments:
+data ProgramArgs = ProgramArgs {
+    dataFile :: String
+  , monthArg :: Int
+  , excelSrcPath :: String
+  }
+
+
+parseArgs :: OA.Parser ProgramArgs
+parseArgs = baseArgs ProgramArgs 
+    <*> strArgument (
+           metavar "SRC" 
+        <> help "Liron's incoming file"
+        <> value "/mnt/c/Users/ymeller/Documents/Administrata/Monthly attendance report October 2024.xlsx"
+        )
+
+progInfo :: OA.ParserInfo ProgramArgs
+progInfo = info (parseArgs <**> helper) (
+    progDesc "Fill in presence from data file into excel"
+  )
+
 main :: IO ()
 main = do
-    fileContent <- readFile "/mnt/c/Users/ymeller/presence.txt"
-    srcXlsFile <- L.readFile "/mnt/c/Users/ymeller/Documents/Administrata/Monthly attendance report October 2024.xlsx"
+    args <- execParser progInfo
+    fileContent <- readFile $ dataFile args
+    srcXlsFile <- L.readFile $ excelSrcPath args
     ct <- getPOSIXTime    
     
     let getMonth wd = case (toGregorian . localDay . theDate) wd of
             (_, m, _) -> m
-        monthWorkedDays = filter (( == 10) . getMonth) $ mapMaybe parseWorkDay $ lines fileContent
+        monthWorkedDays = filter (( == monthArg args) . getMonth) $ mapMaybe parseWorkDay $ lines fileContent
         srcXlsx = toXlsx srcXlsFile 
         sheet = srcXlsx ^? ixSheet "Sheet1"
         updatedXlsx newSheet = srcXlsx & atSheet "Sheet1" ?~ newSheet
