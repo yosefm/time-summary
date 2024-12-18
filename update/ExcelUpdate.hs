@@ -86,7 +86,7 @@ parseArgs = baseArgs ProgramArgs
     <*> strArgument (
            metavar "SRC" 
         <> help "Liron's incoming file"
-        <> value "/mnt/c/Users/ymeller/Documents/Administrata/Monthly attendance report October 2024.xlsx"
+        <> value "example_data/incoming.xlsx"
         )
     <*> strOption (
         value "Yosef Meller"
