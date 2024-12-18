@@ -49,11 +49,14 @@ putWorkDay day sheet =
     case content day of 
         (Worked entry exit) -> clockedUpdate entry exit
         (HalfWorked entry exit) -> clockedUpdate entry exit
+        Vacation -> emptyUpdate & cellValueAt notePos ?~ CellText "Vacation"
+        SickLeave -> emptyUpdate & cellValueAt notePos ?~ CellText "Sick leave"
         _ -> emptyUpdate
     
     where (_, _, d) = (toGregorian . localDay . theDate) day
           entryPos = (fromIntegral d + fst datePos, dateCol + 1)
           exitPos = (fromIntegral d + fst datePos, dateCol + 2)
+          notePos = (fromIntegral d + fst datePos, dateCol + 3)
           ft = T.pack . formatTime defaultTimeLocale "%H:%M" 
           
           clockedUpdate entry' exit' = 
