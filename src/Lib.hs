@@ -73,10 +73,10 @@ parseWorkDay s =
 
 workedHours :: [WorkDay] -> Float
 workedHours = (/3600) . foldr (addWorked . content) 0 
-  where addWorked (Worked entry exit) dt = dt + rangeVal entry exit
-        addWorked (HalfWorked entry exit) dt = dt + rangeVal entry exit
-        addWorked CompanyDay dt = addWorked (Worked defaultEntry defaultExit) dt
-        addWorked _ dt = dt
+  where addWorked (Worked entry exit) = (+ (rangeVal entry exit))
+        addWorked (HalfWorked entry exit) = (+ (rangeVal entry exit))
+        addWorked CompanyDay = addWorked (Worked defaultEntry defaultExit)
+        addWorked _ = id
         rangeVal entry exit = (realToFrac $ diffLocalTime exit entry)
 
 requiredHours :: [WorkDay] -> Float
