@@ -13,7 +13,7 @@ import Data.Time
 import Text.Printf (printf)
 
 type Clock = LocalTime
-data DayContent = Vacation | SickLeave | Unknown
+data DayContent = Vacation | SickLeave | CompanyDay | Unknown
      | Worked Clock Clock
      | HalfWorked Clock Clock
   deriving Show
@@ -24,10 +24,20 @@ data WorkDay = WorkDay {
   }
   deriving Show
 
+defaultDate :: Day
+defaultDate = fromGregorian 1970 1 1
+
+defaultEntry :: Clock
+defaultEntry = LocalTime defaultDate $ TimeOfDay 9 0 0
+
+defaultExit :: Clock
+defaultExit = LocalTime defaultDate $ TimeOfDay 18 0 0
+
 -- how many days' work is expected from one day?
 requiredWork :: DayContent -> Float
 requiredWork (Worked _ _) = 1
 requiredWork (HalfWorked _ _) = 0.5
+requiredWork CompanyDay = requiredWork (Worked defaultEntry defaultExit)
 requiredWork _ = 0
 
 trim :: String -> String
@@ -48,6 +58,7 @@ parseDayContent :: String -> DayContent
 parseDayContent s
     | lower s == "vacation"  = Vacation
     | lower s == "sick day"  = SickLeave
+    | lower s == "company day"  = CompanyDay
     | otherwise = fromMaybe Unknown (parseWorkRange s)
     
   where lower = map toLower
@@ -64,6 +75,7 @@ workedHours :: [WorkDay] -> Float
 workedHours = (/3600) . foldr (addWorked . content) 0 
   where addWorked (Worked entry exit) dt = dt + rangeVal entry exit
         addWorked (HalfWorked entry exit) dt = dt + rangeVal entry exit
+        addWorked CompanyDay dt = addWorked (Worked defaultEntry defaultExit) dt
         addWorked _ dt = dt
         rangeVal entry exit = (realToFrac $ diffLocalTime exit entry)
 
