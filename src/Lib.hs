@@ -2,7 +2,8 @@
 
 module Lib ( 
     WorkDay(..), DayContent(..), parseWorkDay, 
-    workedHours, requiredHours, formatFloatHours
+    workedHours, requiredHours, formatFloatHours,
+    defaultEntry, defaultExit
   ) where
 
 import Data.Char (isSpace, toLower)

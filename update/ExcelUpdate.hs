@@ -48,7 +48,10 @@ putWorkDay :: WorkDay -> Worksheet -> Worksheet
 putWorkDay day sheet = 
     case content day of 
         (Worked entry exit) -> clockedUpdate entry exit
-        (HalfWorked entry exit) -> clockedUpdate entry exit
+        (HalfWorked entry exit) -> clockedUpdate entry exit 
+            & cellValueAt notePos ?~ CellText "Half day off"
+        CompanyDay -> clockedUpdate defaultEntry defaultExit 
+            & cellValueAt notePos ?~ CellText "Company Day"
         Vacation -> emptyUpdate & cellValueAt notePos ?~ CellText "Vacation"
         SickLeave -> emptyUpdate & cellValueAt notePos ?~ CellText "Sick leave"
         _ -> emptyUpdate
@@ -68,9 +71,9 @@ putWorkDay day sheet =
                   & cellValueAt exitPos .~ Nothing
 
 updateSheet :: Worksheet -> [WorkDay] -> T.Text -> Worksheet
-updateSheet sheet workedDays employeeName = 
+updateSheet sheet workedDays employeeName' = 
     let updateDays s = foldr putWorkDay s workedDays
-    in updateDays $ putName sheet employeeName
+    in updateDays $ putName sheet employeeName'
 
 -- CL arguments:
 data ProgramArgs = ProgramArgs {
