@@ -48,18 +48,23 @@ putWorkDay :: WorkDay -> Worksheet -> Worksheet
 putWorkDay day sheet = 
     case content day of 
         (Worked entry exit) -> clockedUpdate entry exit
+        
         (HalfWorked entry exit) -> clockedUpdate entry exit 
             & cellValueAt notePos ?~ CellText "Half day off"
+        
         CompanyDay -> clockedUpdate defaultEntry defaultExit 
             & cellValueAt notePos ?~ CellText "Company Day"
+        
         Vacation -> emptyUpdate & cellValueAt notePos ?~ CellText "Vacation"
         SickLeave -> emptyUpdate & cellValueAt notePos ?~ CellText "Sick leave"
+        
         _ -> emptyUpdate
     
     where (_, _, d) = (toGregorian . localDay . theDate) day
-          entryPos = (fromIntegral d + fst datePos, dateCol + 1)
-          exitPos = (fromIntegral d + fst datePos, dateCol + 2)
-          notePos = (fromIntegral d + fst datePos, dateCol + 3)
+          atPos offs = (fromIntegral d + fst datePos, dateCol + offs)
+          entryPos = atPos 1
+          exitPos = atPos 2
+          notePos = atPos 3
           ft = T.pack . formatTime defaultTimeLocale "%H:%M" 
           
           clockedUpdate entry' exit' = 
