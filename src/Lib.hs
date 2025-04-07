@@ -1,6 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Lib ( 
+    getMonth,
     WorkDay(..), DayContent(..), parseWorkDay, 
     workedHours, requiredHours, formatFloatHours,
     defaultEntry, defaultExit
@@ -24,6 +25,9 @@ data WorkDay = WorkDay {
     content :: DayContent
   }
   deriving Show
+
+getMonth :: WorkDay -> MonthOfYear
+getMonth = (\(_, m, _) -> m) . toGregorian . localDay . theDate
 
 defaultDate :: Day
 defaultDate = fromGregorian 1970 1 1

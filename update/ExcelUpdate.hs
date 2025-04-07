@@ -115,9 +115,7 @@ main = do
     srcXlsFile <- L.readFile $ excelSrcPath args
     ct <- getPOSIXTime    
     
-    let getMonth wd = case (toGregorian . localDay . theDate) wd of
-            (_, m, _) -> m
-        monthWorkedDays = filter (( == monthArg args) . getMonth) $ mapMaybe parseWorkDay $ lines fileContent
+    let monthWorkedDays = filter (( == monthArg args) . getMonth) $ mapMaybe parseWorkDay $ lines fileContent
         
         srcXlsx = toXlsx srcXlsFile 
         sheet = srcXlsx ^? ixSheet "Sheet1"

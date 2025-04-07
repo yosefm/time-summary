@@ -1,10 +1,7 @@
 module Main (main) where
 
 import Data.Maybe
-import Data.Time
-
 import Options.Applicative
-import Text.Read (readMaybe)
 
 import Lib
 import Args (baseArgs)
@@ -27,9 +24,7 @@ main = do
     args <- execParser progInfo
     fileContent <- readFile $ dataFile args
     
-    let getMonth wd = case (toGregorian . localDay . theDate) wd of
-            (_, m, _) -> m
-        monthWorkedDays = filter (( == monthArg args) . getMonth) $ mapMaybe parseWorkDay $ lines fileContent
+    let monthWorkedDays = filter (( == monthArg args) . getMonth) $ mapMaybe parseWorkDay $ lines fileContent
         
     mapM_ print $ monthWorkedDays
     putStrLn $ "Worked hours: " ++ formatFloatHours (workedHours monthWorkedDays)
